@@ -1,6 +1,7 @@
 import cv2
 import glob
 import numpy as np
+import pandas as pd
 import random
 from datetime import datetime
 
@@ -174,3 +175,11 @@ if __name__ == "__main__":
     plt.xlabel("Frecuencia espacial (cpg)")
     plt.ylabel("S (dB)")
     plt.savefig(nombre + "_" + datetime.now().strftime('%m-%d-%Y') + ".png")
+
+    try:
+        new_row = {"Nombre":nombre, "Fecha":datetime.now().strftime('%m-%d-%Y'), "1,5":umbrales[0], "3":umbrales[1], "6":umbrales[2], "12":umbrales[3], "18":umbrales[4]}
+        database = pd.read_csv("database.csv")
+        database = database.append(new_row, ignore_index = True)
+        database.to_csv("database.csv", index = False)
+    except:
+        print("No existe la base de datos llamada 'database.csv'.")
