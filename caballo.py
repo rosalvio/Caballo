@@ -3,6 +3,7 @@ import glob
 import numpy as np
 import pandas as pd
 import random
+import paramiko
 from datetime import datetime
 
 freq_x = [1.5, 3, 6, 12, 18]
@@ -184,5 +185,18 @@ if __name__ == "__main__":
         database = pd.read_csv("database.csv")
         database = database.append(new_row, ignore_index = True)
         database.to_csv("database.csv", index = False)
+
+        import paramiko
+        host = "167.172.108.141"
+        port = 22
+        username = "root"
+        password = "asASkmfdmkA123!a"
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(host, port, username, password)
+        sftp = ssh.open_sftp()
+        sftp.put("database.csv", "/srv/shiny-server/proyecto_cebra/database.csv")
+        sftp.close()
     except:
         print("No existe la base de datos llamada 'database.csv'.")
