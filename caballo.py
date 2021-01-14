@@ -78,6 +78,7 @@ def fadeIn (img1, img2, len=10):
         fadein = IN/float(len)
         dst = cv2.addWeighted( img1, 1-fadein, img2, fadein, 0)
         dst2 = cv2.resize(dst, (600,600), interpolation=cv2.INTER_NEAREST)
+        dst2 = cv2.blur(dst2, (10, 10))
         cv2.imshow('Res', dst2)
         cv2.waitKey(1)
 
