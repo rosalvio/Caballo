@@ -86,6 +86,8 @@ indices = []
 if __name__ == "__main__":
     nombre = input("Introduzca el nombre del paciente: ")
     print(nombre)
+    apellidos = input("Introduzca los apellidos o el apellido del paciente (separados por un espacio en caso de ser dos):")
+    print(apellidos)
     ant = ''
     j = 0
     for frecuencia in imgs_1_5:
@@ -177,7 +179,7 @@ if __name__ == "__main__":
     plt.savefig(nombre + "_" + datetime.now().strftime('%m-%d-%Y') + ".png")
 
     try:
-        new_row = {"Nombre":nombre, "Fecha":datetime.now().strftime('%m-%d-%Y'), "1,5":umbrales[0], "3":umbrales[1], "6":umbrales[2], "12":umbrales[3], "18":umbrales[4]}
+        new_row = {"Nombre":nombre, "Apellidos": apellidos, "Fecha":datetime.now().strftime('%m-%d-%Y'), "1,5":umbrales[0], "3":umbrales[1], "6":umbrales[2], "12":umbrales[3], "18":umbrales[4]}
         database = pd.read_csv("database.csv")
         database = database.append(new_row, ignore_index = True)
         database.to_csv("database.csv", index = False)
