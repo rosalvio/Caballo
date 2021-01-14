@@ -198,5 +198,7 @@ if __name__ == "__main__":
         sftp = ssh.open_sftp()
         sftp.put("database.csv", "/srv/shiny-server/proyecto_cebra/database.csv")
         sftp.close()
+
+        print("Base de datos actualizada y enviada a la Web.")
     except:
-        print("No existe la base de datos llamada 'database.csv'.")
+        print("No existe la base de datos llamada 'database.csv' o ha sucedido un error de conexión.")
