@@ -8,6 +8,24 @@ import h5py
 from datetime import datetime
 import keyboard
 
+try:
+    import paramiko
+    host = "167.172.108.141"
+    port = 22
+    username = "root"
+    password = "asASkmfdmkA123!a"
+
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(host, port, username, password)
+    sftp = ssh.open_sftp()
+    sftp.get("/srv/shiny-server/proyecto_cebra/database.csv", "database.csv")
+    sftp.close()
+
+    print("Conectado a la web satisfactoriamente.")
+except:
+    print("No nos hemos podido conectar a la web. Los datos no se subirán.")
+
 freq_x = [1.5, 3, 6, 12, 18]
 contrastes =[[0.8,0.6,0.3,0.15,0.075,0.0375,0.009375,0.01875,0.00446875],
 [0.6,0.3,0.15,0.075,0.0375,0.01875,0.009375,0.0046875],
@@ -229,19 +247,13 @@ if __name__ == "__main__":
     plt.xticks(freq_x, freq_x)
     plt.xlabel("Frecuencia espacial (cpg)")
     plt.ylabel("S (dB)")
-    plt.savefig(nombre + "_" + datetime.now().strftime('%m-%d-%Y') + ".png")
+    plt.savefig("../../resultados/" + nombre + "_" + datetime.now().strftime('%m-%d-%Y') + ".png")
 
     try:
         new_row = {"Nombre":nombre, "Apellidos": apellidos, "Fecha":datetime.now().strftime('%Y-%m-%d'), "F1.5":umbrales[0], "F3":umbrales[1], "F6":umbrales[2], "F12":umbrales[3], "F18":umbrales[4]}
         database = pd.read_csv("database.csv")
         database = database.append(new_row, ignore_index = True)
         database.to_csv("database.csv", index = False)
-
-        import paramiko
-        host = "167.172.108.141"
-        port = 22
-        username = "root"
-        password = "asASkmfdmkA123!a"
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
