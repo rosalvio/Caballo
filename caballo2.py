@@ -7,6 +7,10 @@ import paramiko
 import h5py
 from datetime import datetime
 import keyboard
+from screeninfo import get_monitors
+from scipy.interpolate import BSpline, make_interp_spline
+
+new_dim = int(0.75*get_monitors()[0].height)
 
 try:
     import paramiko
@@ -79,12 +83,10 @@ def fadeIn (img1, img2, long=10):
     for IN in range(0,long):
         fadein = IN/float(long)
         dst = cv2.addWeighted( img1, 1-fadein, img2, fadein, 0)
-        dst = cv2.resize(dst, (600,600), interpolation=cv2.INTER_NEAREST)
         dst = cv2.blur(dst, (10, 10))
         dst = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
-        cv2.namedWindow('Res', cv2.WINDOW_NORMAL)
-        cv2.imshow('Res', dst.astype("uint8"))
-        cv2.setWindowProperty('Res', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        dst = cv2.resize(dst, (new_dim,new_dim), interpolation=cv2.INTER_NEAREST)
+        cv2.imshow("Test", dst.astype("uint8"))
         cv2.waitKey(3)
 
 indices = []
@@ -240,14 +242,17 @@ if __name__ == "__main__":
 
     import matplotlib.pyplot as plt
     y = 1/np.array(umbrales)
-    x = freq_x
-    plt.plot(x, y, "o--", color = "blue")
+    x = np.array(freq_x)
+    x_new = np.linspace(x.min(), x.max(), 300)
+    spl = make_interp_spline(x, y, k = 3)
+    power_smooth = spl(x_new)
+    plt.plot(x_new, power_smooth, "o-", color = "blue")
     plt.yscale(value = "log")
     plt.grid()
     plt.xticks(freq_x, freq_x)
     plt.xlabel("Frecuencia espacial (cpg)")
     plt.ylabel("S (dB)")
-    plt.savefig("../../resultados/" + nombre + "_" + datetime.now().strftime('%m-%d-%Y') + ".png")
+    plt.savefig("../resultados/" + nombre + "_" + datetime.now().strftime('%m-%d-%Y') + ".png")
 
     try:
         new_row = {"Nombre":nombre, "Apellidos": apellidos, "Fecha":datetime.now().strftime('%Y-%m-%d'), "F1.5":umbrales[0], "F3":umbrales[1], "F6":umbrales[2], "F12":umbrales[3], "F18":umbrales[4]}
