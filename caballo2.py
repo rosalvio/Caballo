@@ -8,13 +8,13 @@ import h5py
 from datetime import datetime
 import keyboard
 from screeninfo import get_monitors
-from scipy.interpolate import BSpline, make_interp_spline
+from scipy.interpolate import make_interp_spline
 
 new_dim = int(0.75*get_monitors()[0].height)
 
 try:
     import paramiko
-    host = "167.172.108.141"
+    host = "188.166.150.7"
     port = 22
     username = "root"
     password = "asASkmfdmkA123!a"
@@ -244,9 +244,9 @@ if __name__ == "__main__":
     y = 1/np.array(umbrales)
     x = np.array(freq_x)
     x_new = np.linspace(x.min(), x.max(), 300)
-    spl = make_interp_spline(x, y, k = 3)
-    power_smooth = spl(x_new)
-    plt.plot(x_new, power_smooth, "o-", color = "blue")
+    a_BSpline = make_interp_spline(x, y)
+    y_new = a_BSpline(x_new)
+    plt.plot(x_new, y_new, ".", color = "blue")
     plt.yscale(value = "log")
     plt.grid()
     plt.xticks(freq_x, freq_x)

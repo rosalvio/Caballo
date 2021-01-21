@@ -8,32 +8,18 @@ import h5py
 from datetime import datetime
 import keyboard
 from screeninfo import get_monitors
-from scipy.interpolate import BSpline, make_interp_spline
+from scipy.interpolate import make_interp_spline
+import paramiko
+import os
 import PySimpleGUI as sg
 
 sg.theme('DarkAmber')
 
+path_images = "build/caballo2gui/images/"
+
 # Parte del test
 
 new_dim = int(0.75*get_monitors()[0].height)
-
-try:
-    import paramiko
-    host = "167.172.108.141"
-    port = 22
-    username = "root"
-    password = "asASkmfdmkA123!a"
-
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(host, port, username, password)
-    sftp = ssh.open_sftp()
-    sftp.get("/srv/shiny-server/proyecto_cebra/database.csv", "database.csv")
-    sftp.close()
-
-    print("Conectado a la web satisfactoriamente.")
-except:
-    print("No nos hemos podido conectar a la web. Los datos no se subirán.")
 
 freq_x = [1.5, 3, 6, 12, 18]
 contrastes =[[0.8,0.6,0.3,0.15,0.075,0.0375,0.009375,0.01875,0.00446875],
@@ -42,7 +28,7 @@ contrastes =[[0.8,0.6,0.3,0.15,0.075,0.0375,0.009375,0.01875,0.00446875],
 [0.8,0.6,0.3,0.15,0.075,0.0375,0.01875,0.009375],
 [1,0.8,0.6,0.3,0.15,0.075,0.0375,0.01875]]
 
-hf = h5py.File("mask.h5", "r")
+hf = h5py.File("build/caballo2gui/mask.h5", "r")
 mask = np.array(hf.get("mask"))
 hf.close()
 
@@ -211,7 +197,7 @@ while True:
         for frecuencia in imgs_1_5:
             print("Estamos en un contraste de 1.5")
             print("Frecuencia: ", frecuencia)
-            imagenes_4 = imagenes("images/" + frecuencia)
+            imagenes_4 = imagenes(path_images + frecuencia)
             indexes = np.array(random.sample(range(0, 4), 4))
             new_imagenes = [imagenes_4[i] for i in indexes]
             im_list_2d = [[new_imagenes[0].astype("float32"), new_imagenes[1].astype("float32")], [new_imagenes[2].astype("float32"), new_imagenes[3].astype("float32")]]
@@ -239,7 +225,7 @@ while True:
         for frecuencia in imgs_3:
             print("Estamos en un contraste de 3")
             print("Frecuencia: ", frecuencia)
-            imagenes_4 = imagenes("images/" + frecuencia)
+            imagenes_4 = imagenes(path_images + frecuencia)
             indexes = np.array(random.sample(range(0, 4), 4))
             new_imagenes = [imagenes_4[i] for i in indexes]
             im_list_2d = [[new_imagenes[0].astype("float32"), new_imagenes[1].astype("float32")], [new_imagenes[2].astype("float32"), new_imagenes[3].astype("float32")]]
@@ -267,7 +253,7 @@ while True:
         for frecuencia in imgs_6:
             print("Estamos en un contraste de 6")
             print("Frecuencia: ", frecuencia)
-            imagenes_4 = imagenes("images/" + frecuencia)
+            imagenes_4 = imagenes(path_images + frecuencia)
             indexes = np.array(random.sample(range(0, 4), 4))
             new_imagenes = [imagenes_4[i] for i in indexes]
             im_list_2d = [[new_imagenes[0].astype("float32"), new_imagenes[1].astype("float32")], [new_imagenes[2].astype("float32"), new_imagenes[3].astype("float32")]]
@@ -295,7 +281,7 @@ while True:
         for frecuencia in imgs_12:
             print("Estamos en un contraste de 12")
             print("Frecuencia: ", frecuencia)
-            imagenes_4 = imagenes("images/" + frecuencia)
+            imagenes_4 = imagenes(path_images + frecuencia)
             indexes = np.array(random.sample(range(0, 4), 4))
             new_imagenes = [imagenes_4[i] for i in indexes]
             im_list_2d = [[new_imagenes[0].astype("float32"), new_imagenes[1].astype("float32")], [new_imagenes[2].astype("float32"), new_imagenes[3].astype("float32")]]
@@ -323,7 +309,7 @@ while True:
         for frecuencia in imgs_18:
             print("Estamos en un contraste de 18")
             print("Frecuencia: ", frecuencia)
-            imagenes_4 = imagenes("images/" + frecuencia)
+            imagenes_4 = imagenes(path_images + frecuencia)
             indexes = np.array(random.sample(range(0, 4), 4))
             new_imagenes = [imagenes_4[i] for i in indexes]
             im_list_2d = [[new_imagenes[0].astype("float32"), new_imagenes[1].astype("float32")], [new_imagenes[2].astype("float32"), new_imagenes[3].astype("float32")]]
@@ -354,34 +340,48 @@ while True:
         y = 1/np.array(umbrales)
         x = np.array(freq_x)
         x_new = np.linspace(x.min(), x.max(), 300)
-        spl = make_interp_spline(x, y, k = 3)
-        power_smooth = spl(x_new)
-        plt.plot(x_new, power_smooth, ".", color = "blue")
+        a_BSpline = make_interp_spline(x, y)
+        y_new = a_BSpline(x_new)
+        plt.plot(x_new, y_new, ".", color = "blue")
         plt.yscale(value = "log")
         plt.grid()
         plt.xticks(freq_x, freq_x)
         plt.xlabel("Frecuencia espacial (cpg)")
         plt.ylabel("S (dB)")
-        plt.savefig("../resultados/" + nombre + "_" + datetime.now().strftime('%m-%d-%Y') + ".png")
+        plt.savefig("resultados/" + nombre + "_" + datetime.now().strftime('%m-%d-%Y') + ".png")
 
         try:
-            new_row = {"Nombre":nombre, "Apellidos": apellidos, "Fecha":datetime.now().strftime('%Y-%m-%d'), "F1.5":umbrales[0], "F3":umbrales[1], "F6":umbrales[2], "F12":umbrales[3], "F18":umbrales[4]}
-            database = pd.read_csv("database.csv")
-            database = database.append(new_row, ignore_index = True)
-            database.to_csv("database.csv", index = False)
+            host = "188.166.150.7"
+            port = 22
+            username = "root"
+            password = "asASkmfdmkA123!a"
 
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             ssh.connect(host, port, username, password)
             sftp = ssh.open_sftp()
-            sftp.put("database.csv", "/srv/shiny-server/proyecto_cebra/database.csv")
+            sftp.get("/srv/shiny-server/proyecto_cebra/database.csv", "build/caballo2gui/database.csv")
             sftp.close()
+
+            new_row = {"Nombre":nombre, "Apellidos": apellidos, "Fecha":datetime.now().strftime('%Y-%m-%d'), "F1.5":umbrales[0], "F3":umbrales[1], "F6":umbrales[2], "F12":umbrales[3], "F18":umbrales[4]}
+            database = pd.read_csv("build/caballo2gui/database.csv")
+            database = database.append(new_row, ignore_index = True)
+            database.to_csv("build/caballo2gui/database.csv", index = False)
+
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(host, port, username, password)
+            sftp = ssh.open_sftp()
+            sftp.put("build/caballo2gui/database.csv", "/srv/shiny-server/proyecto_cebra/database.csv")
+            sftp.close()
+
+            os.remove("build/caballo2gui/database.csv")
 
             print("Base de datos actualizada y enviada a la Web.")
         except:
             print("No existe la base de datos llamada 'database.csv' o ha sucedido un error de conexión.")
         
-        resultado = cv2.imread("../resultados/" + nombre + "_" + datetime.now().strftime('%m-%d-%Y') + ".png")
+        resultado = cv2.imread("resultados/" + nombre + "_" + datetime.now().strftime('%m-%d-%Y') + ".png")
         cv2.destroyAllWindows()
         imgbytes = cv2.imencode(".png", resultado)[1].tobytes()
         window["-IMAGE-"].update(data=imgbytes)
